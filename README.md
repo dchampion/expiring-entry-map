@@ -1,7 +1,7 @@
 # A Map with Expiring Entries
 
 ## Summary
-The single class in this repository (source code in <a href=https://github.com/dchampion/expiring-entry-map/blob/main/src/main/java/com/dchampion/ExpiringEntryMap.java target="_blank">ExpiringEntryMap.java</a>) is an implementation of the <code>java.util.Map</code> collection containing entries that expire after a user-specified period of time.
+The single class in this repository (source code in <a href=https://github.com/dchampion/expiring-entry-map/blob/main/src/main/java/com/dchampion/ExpiringEntryMap.java target="_blank">ExpiringEntryMap.java</a>) is an implementation of the <code>java.util.Map</code> collection. It contains entries that expire after a user-specified period of time.
 
 For an explanation of the purpose and features of this class, jump to a full [Description of the Project](#Description-of-the-Project) below.
 
