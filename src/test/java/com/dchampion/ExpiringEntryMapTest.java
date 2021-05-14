@@ -63,6 +63,19 @@ public class ExpiringEntryMapTest {
     }
 
     @Test
+    public void testBuildMapWithExistingEntries() {
+        Map<Integer,String> map = new TreeMap<>();
+        map.put(1, "one");
+        map.put(2, "two");
+        map.put(3, "three");
+
+        map = ExpiringEntryMap.Builder.map(map).build();
+        assertEquals(map.get(1), "one");
+        assertEquals(map.get(2), "two");
+        assertEquals(map.get(3), "three");
+    }
+
+    @Test
     public void testTimeUnitConversions() {
         ExpiringEntryMap<String,Integer> map = 
             ExpiringEntryMap.Builder.map(new HashMap<String,Integer>()).build();
@@ -333,6 +346,21 @@ public class ExpiringEntryMapTest {
             sleep(200);
             assertEquals(map.size(), 0);
         });
+    }
+
+    @Test
+    public void testPreexistingEntriesExpire() {
+        Map<Integer,String> map = new TreeMap<>();
+        map.put(1, "one");
+        map.put(2, "two");
+        map.put(3, "three");
+
+        map = ExpiringEntryMap.Builder.map(map).lifetime(TimeUnit.MILLISECONDS, 100).build();
+        assertEquals(map.size(), 3);
+
+        sleep(200);
+        assertTrue(map.isEmpty());
+        assertEquals(map.size(), 0);
     }
     // End expiring map value functionality tests.
 }
