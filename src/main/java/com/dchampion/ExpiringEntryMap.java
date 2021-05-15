@@ -290,7 +290,7 @@ public final class ExpiringEntryMap<K,V> implements Map<K,V> {
     }
 
     @Override
-    public synchronized void clear() {
+    public void clear() {
         wrapper.clear();
     }
 

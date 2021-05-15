@@ -11,10 +11,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -23,7 +27,7 @@ import org.junit.Test;
 
 public class ExpiringEntryMapTest {
 
-    ArrayList<Map<Integer,String>> maps = new ArrayList<>();
+    List<Map<Integer,String>> maps = new ArrayList<>();
 
     @Before
     public void setup() {
@@ -267,7 +271,7 @@ public class ExpiringEntryMapTest {
     }
 
     @Test
-    public void putAll() {
+    public void testPutAll() {
         maps.forEach(map -> {
             assertTrue(map.isEmpty());
             Map<Integer,String> m = new HashMap<>();
@@ -280,7 +284,7 @@ public class ExpiringEntryMapTest {
     }
 
     @Test
-    public void putIfAbsent() {
+    public void testPutIfAbsent() {
         maps.forEach(map -> {
             populate(map);
             assertEquals(map.putIfAbsent(1, "one"), "one");
@@ -363,4 +367,33 @@ public class ExpiringEntryMapTest {
         assertEquals(map.size(), 0);
     }
     // End expiring map value functionality tests.
+
+    // Begin concurrent map functionality tests.
+    @Test
+    public void testConcurrentMap() {
+        Map<String,Long> map =
+            ExpiringEntryMap.Builder.map(new ConcurrentHashMap<String,Long>()).lifetime(TimeUnit.MILLISECONDS, 1000).build();
+        ExecutorService es = Executors.newFixedThreadPool(5);
+
+        for(int i=0; i<5; i++) {
+            map.put(Thread.currentThread().getName()+i, Thread.currentThread().getId());
+            es.execute(() -> {
+                for(int j=0; j<5; j++) {
+                    map.put(Thread.currentThread().getName()+j, Thread.currentThread().getId());
+                }
+            });
+            map.put(Thread.currentThread().getName()+i, Thread.currentThread().getId());
+        }
+        es.shutdown();
+        try {
+            es.awaitTermination(5000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            fail(e.getMessage());
+        }
+        assertEquals(30, map.size());
+
+        sleep(1000);
+        assertEquals(0, map.size());
+    }
+    // End concurrent map functionality tests.
 }
