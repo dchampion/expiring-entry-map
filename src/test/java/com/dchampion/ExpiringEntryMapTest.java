@@ -366,6 +366,14 @@ public class ExpiringEntryMapTest {
         assertTrue(map.isEmpty());
         assertEquals(0, map.size());
     }
+
+    @Test
+    public void testMapImplementations() {
+        assertTrue(((ExpiringEntryMap<?,?>)maps.get(0)).wrapper instanceof HashMap);
+        assertTrue(((ExpiringEntryMap<?,?>)maps.get(1)).wrapper instanceof TreeMap);
+        assertTrue(((ExpiringEntryMap<?,?>)maps.get(2)).wrapper instanceof Hashtable);
+        assertTrue(((ExpiringEntryMap<?,?>)maps.get(3)).wrapper instanceof LinkedHashMap);
+    }
     // End expiring map value functionality tests.
 
     // Begin concurrent map functionality tests.
@@ -373,6 +381,9 @@ public class ExpiringEntryMapTest {
     public void testConcurrentMap() {
         Map<String,Long> map =
             ExpiringEntryMap.Builder.map(new ConcurrentHashMap<String,Long>()).lifetime(TimeUnit.MILLISECONDS, 1000).build();
+
+        assertTrue(((ExpiringEntryMap<?,?>)map).wrapper instanceof ConcurrentHashMap);
+
         ExecutorService es = Executors.newFixedThreadPool(5);
 
         for(int i=0; i<5; i++) {

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * A map (i.e. "dictionary") with expiring entries. Users of this class should supply their own
@@ -50,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 public final class ExpiringEntryMap<K,V> implements Map<K,V> {
     
     @SuppressWarnings("rawtypes")
-    private Map wrapper = null;
+    Map wrapper = null;
     
     /**
      * Lifetime of map values (in milliseconds).
