@@ -59,11 +59,11 @@ public class ExpiringEntryMapTest {
     public void testBuildMap() {
         Map<String,Integer> map = ExpiringEntryMap.Builder.map(new HashMap<String,Integer>()).build();
         map.put("one", 1);
-        assertEquals(map.get("one"), Integer.valueOf(1));
+        assertEquals(Integer.valueOf(1), map.get("one"));
 
         map = ExpiringEntryMap.Builder.map(new HashMap<String,Integer>()).lifetime(TimeUnit.HOURS, 2).build();
         map.put("one", 1);
-        assertEquals(map.get("one"), Integer.valueOf(1));
+        assertEquals(Integer.valueOf(1), map.get("one"));
     }
 
     @Test
@@ -74,31 +74,31 @@ public class ExpiringEntryMapTest {
         map.put(3, "three");
 
         map = ExpiringEntryMap.Builder.map(map).build();
-        assertEquals(map.get(1), "one");
-        assertEquals(map.get(2), "two");
-        assertEquals(map.get(3), "three");
+        assertEquals("one", map.get(1));
+        assertEquals("two", map.get(2));
+        assertEquals("three", map.get(3));
     }
 
     @Test
     public void testTimeUnitConversions() {
         ExpiringEntryMap<String,Integer> map = 
             ExpiringEntryMap.Builder.map(new HashMap<String,Integer>()).build();
-        assertEquals(map.lifetime, 60 * 60 * 1000);
+        assertEquals(60 * 60 * 1000, map.lifetime);
 
         map = ExpiringEntryMap.Builder.map(new HashMap<String,Integer>()).lifetime(TimeUnit.DAYS, 1).build();
-        assertEquals(map.lifetime, 24 * 60 * 60 * 1000);
+        assertEquals(24 * 60 * 60 * 1000, map.lifetime);
 
         map = ExpiringEntryMap.Builder.map(new HashMap<String,Integer>()).lifetime(TimeUnit.HOURS, 1).build();
-        assertEquals(map.lifetime, 60 * 60 * 1000);
+        assertEquals(60 * 60 * 1000, map.lifetime);
 
         map = ExpiringEntryMap.Builder.map(new HashMap<String,Integer>()).lifetime(TimeUnit.MINUTES, 1).build();
-        assertEquals(map.lifetime, 60 * 1000);
+        assertEquals(60 * 1000, map.lifetime);
 
         map = ExpiringEntryMap.Builder.map(new HashMap<String,Integer>()).lifetime(TimeUnit.SECONDS, 1).build();
-        assertEquals(map.lifetime, 1000);
+        assertEquals(1000, map.lifetime);
 
         map = ExpiringEntryMap.Builder.map(new HashMap<String,Integer>()).lifetime(TimeUnit.MILLISECONDS, 1).build();
-        assertEquals(map.lifetime, 1);
+        assertEquals(1, map.lifetime);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -147,8 +147,8 @@ public class ExpiringEntryMapTest {
     public void testCompute() {
         maps.forEach(map -> {
             populate(map);
-            assertEquals(map.compute(3, (k, v) -> v.concat("blindmice")), "threeblindmice");
-            assertEquals(map.get(3), "threeblindmice");
+            assertEquals("threeblindmice", map.compute(3, (k, v) -> v.concat("blindmice")));
+            assertEquals("threeblindmice", map.get(3));
         });
     }
 
@@ -157,10 +157,10 @@ public class ExpiringEntryMapTest {
         maps.forEach(map -> {
             populate(map);
             assertEquals(map.computeIfAbsent(3, k -> "three"), "three");
-            assertEquals(map.get(3), "three");
+            assertEquals("three", map.get(3));
             assertNull(map.get(5));
-            assertEquals(map.computeIfAbsent(5, k -> "five"), "five");
-            assertEquals(map.get(5), "five");
+            assertEquals("five", map.computeIfAbsent(5, k -> "five"));
+            assertEquals("five", map.get(5));
         });
     }
 
@@ -169,7 +169,7 @@ public class ExpiringEntryMapTest {
         maps.forEach(map -> {
             populate(map);
             assertEquals(map.computeIfPresent(3, (k, v) -> "THREE"), "THREE");
-            assertEquals(map.get(3), "THREE");
+            assertEquals("THREE", map.get(3));
             assertNull(map.get(5));
             assertNull(map.computeIfPresent(5, (k, v) -> "five"));
             assertNull(map.get(5));
@@ -254,8 +254,8 @@ public class ExpiringEntryMapTest {
     public void testMerge() {
         maps.forEach(map -> {
             populate(map);
-            assertEquals(map.merge(1, "ofakind", String::concat), "oneofakind");
-            assertEquals(map.get(1), "oneofakind");
+            assertEquals("oneofakind", map.merge(1, "ofakind", String::concat));
+            assertEquals("oneofakind", map.get(1));
         });
     }
 
@@ -264,9 +264,9 @@ public class ExpiringEntryMapTest {
         maps.forEach(map -> {
             assertTrue(map.isEmpty());
             assertNull(map.put(1, "one"));
-            assertEquals(map.get(1), "one");
-            assertEquals(map.put(1, "ONE"), "one");
-            assertEquals(map.get(1), "ONE");
+            assertEquals("one", map.get(1));
+            assertEquals("one", map.put(1, "ONE"));
+            assertEquals("ONE", map.get(1));
         });
     }
 
@@ -278,8 +278,8 @@ public class ExpiringEntryMapTest {
             m.put(1, "one");
             m.put(2, "two");
             map.putAll(m);
-            assertEquals(map.get(1), "one");
-            assertEquals(map.get(2), "two");
+            assertEquals("one", map.get(1));
+            assertEquals("two", map.get(2));
         });
     }
 
@@ -287,9 +287,9 @@ public class ExpiringEntryMapTest {
     public void testPutIfAbsent() {
         maps.forEach(map -> {
             populate(map);
-            assertEquals(map.putIfAbsent(1, "one"), "one");
+            assertEquals("one", map.putIfAbsent(1, "one"));
             assertNull(map.putIfAbsent(5, "five"));
-            assertEquals(map.get(5), "five");
+            assertEquals("five", map.get(5));
         });
     }
 
@@ -298,10 +298,10 @@ public class ExpiringEntryMapTest {
         maps.forEach(map -> {
             populate(map);
             assertFalse(map.isEmpty());
-            assertEquals(map.remove(1), "one");
-            assertEquals(map.remove(2), "two");
-            assertEquals(map.remove(3), "three");
-            assertEquals(map.remove(4), "four");
+            assertEquals("one", map.remove(1));
+            assertEquals("two", map.remove(2));
+            assertEquals("three", map.remove(3));
+            assertEquals("four", map.remove(4));
             assertNull(map.remove(4));
         });
     }
@@ -310,9 +310,9 @@ public class ExpiringEntryMapTest {
     public void testSize() {
         maps.forEach(map -> {
             populate(map);
-            assertEquals(map.size(), 4);
+            assertEquals(4, map.size());
             map.clear();
-            assertEquals(map.size(), 0);
+            assertEquals(0, map.size());
         });
     }
 
@@ -337,18 +337,18 @@ public class ExpiringEntryMapTest {
         createMaps(TimeUnit.MILLISECONDS, 100);
         maps.forEach(map -> {
             populate(map);
-            assertEquals(map.size(), 4);
+            assertEquals(4, map.size());
             sleep(200);
-            assertEquals(map.size(), 0);
+            assertEquals(0, map.size());
 
             map.put(1, "ONE");
-            assertEquals(map.size(), 1);
+            assertEquals(1, map.size());
             sleep(200);
-            assertEquals(map.size(), 0);
+            assertEquals(0, map.size());
 
             map.put(2, "TWO");
             sleep(200);
-            assertEquals(map.size(), 0);
+            assertEquals(0, map.size());
         });
     }
 
@@ -360,11 +360,11 @@ public class ExpiringEntryMapTest {
         map.put(3, "three");
 
         map = ExpiringEntryMap.Builder.map(map).lifetime(TimeUnit.MILLISECONDS, 100).build();
-        assertEquals(map.size(), 3);
+        assertEquals(3, map.size());
 
         sleep(200);
         assertTrue(map.isEmpty());
-        assertEquals(map.size(), 0);
+        assertEquals(0, map.size());
     }
     // End expiring map value functionality tests.
 
