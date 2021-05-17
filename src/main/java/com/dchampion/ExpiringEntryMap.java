@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * A map (i.e. "dictionary") with expiring entries. Users of this class should supply their own
@@ -200,24 +199,16 @@ public final class ExpiringEntryMap<K,V> implements Map<K,V> {
     private ExpiringEntryMap(Map<K,V> map, long lifetime) {
         assert map != null;
         assert lifetime > 0;
-        long timestamp = now();
         try {
             wrapper = map.getClass().getDeclaredConstructor((Class<?>[])null).newInstance((Object[])null);
-            for(Entry<K,V> entry : map.entrySet()) {
-                wrapper.put(entry.getKey(), new TimestampedValue<V>(entry.getValue(), timestamp));
-            }
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (SecurityException e) {
-            e.printStackTrace();
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
+                 InvocationTargetException | NoSuchMethodException | SecurityException e) {
+            throw new RuntimeException("Unable to instantiate map of type "
+                + map.getClass().getTypeName() + " using no-arg constructor", e);
+        }
+        long timestamp = now();
+        for(Entry<K,V> entry : map.entrySet()) {
+            wrapper.put(entry.getKey(), new TimestampedValue<V>(entry.getValue(), timestamp));
         }
         this.lifetime = lifetime;
     }
@@ -260,24 +251,24 @@ public final class ExpiringEntryMap<K,V> implements Map<K,V> {
     public V get(Object key) {
         flush();
         @SuppressWarnings("unchecked")
-        TimestampedValue<V> ev = (TimestampedValue<V>) wrapper.get(key);
-        return ev != null ? ev.getValue() : null;
+        TimestampedValue<V> tv = (TimestampedValue<V>) wrapper.get(key);
+        return tv != null ? tv.getValue() : null;
     }
 
     @Override
     public V put(K key, V value) {
         flush();
         @SuppressWarnings("unchecked")
-        TimestampedValue<V> ev = (TimestampedValue<V>) wrapper.put(key, new TimestampedValue<V>(value, now()));
-        return ev != null ? ev.getValue() : null;
+        TimestampedValue<V> tv = (TimestampedValue<V>) wrapper.put(key, new TimestampedValue<V>(value, now()));
+        return tv != null ? tv.getValue() : null;
     }
 
     @Override
     public V remove(Object key) {
         flush();
         @SuppressWarnings("unchecked")
-        TimestampedValue<V> ev = (TimestampedValue<V>) wrapper.remove(key);
-        return ev != null ? ev.getValue() : null;
+        TimestampedValue<V> tv = (TimestampedValue<V>) wrapper.remove(key);
+        return tv != null ? tv.getValue() : null;
     }
 
     @Override
@@ -307,8 +298,8 @@ public final class ExpiringEntryMap<K,V> implements Map<K,V> {
     public Collection<V> values() {
         flush();
         List<V> values = new ArrayList<V>();
-        for (TimestampedValue<V> ev : (Collection<TimestampedValue<V>>) wrapper.values()) {
-            values.add(ev.getValue());
+        for (TimestampedValue<V> tv : (Collection<TimestampedValue<V>>) wrapper.values()) {
+            values.add(tv.getValue());
         }
         return values;
     }
