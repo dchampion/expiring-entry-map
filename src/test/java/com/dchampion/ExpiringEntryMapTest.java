@@ -317,6 +317,14 @@ public class ExpiringEntryMapTest {
     }
 
     @Test
+    public void testValues() {
+        maps.forEach(map -> {
+            populate(map);
+            map.values().forEach(value -> assertTrue(value == "one" || value == "two" || value == "three" || value == "four"));
+        });
+    }
+
+    @Test
     public void testSerialize() {
         // TODO: Implement me.
     }
@@ -392,19 +400,30 @@ public class ExpiringEntryMapTest {
                 for(int j=0; j<5; j++) {
                     map.put(Thread.currentThread().getName()+j, Thread.currentThread().getId());
                 }
+                callOverrides(map);
             });
             map.put(Thread.currentThread().getName()+i, Thread.currentThread().getId());
+            callOverrides(map);
         }
+        callOverrides(map);
         es.shutdown();
         try {
             es.awaitTermination(5000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             fail(e.getMessage());
         }
+        callOverrides(map);
         assertEquals(30, map.size());
 
         sleep(1000);
         assertEquals(0, map.size());
+    }
+
+    private void callOverrides(Map<String,Long> map) {
+        map.containsValue(new Object());
+        map.putAll(map);
+        map.values();
+        map.entrySet();
     }
     // End concurrent map functionality tests.
 }

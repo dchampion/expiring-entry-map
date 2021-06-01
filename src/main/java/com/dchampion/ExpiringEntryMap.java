@@ -1,13 +1,12 @@
 package com.dchampion;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * A map (i.e. "dictionary") with expiring entries. Users of this class should supply their own
@@ -195,7 +194,6 @@ public final class ExpiringEntryMap<K,V> implements Map<K,V> {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private ExpiringEntryMap(Map<K,V> map, long lifetime) {
         assert map != null;
         assert lifetime > 0;
@@ -206,10 +204,7 @@ public final class ExpiringEntryMap<K,V> implements Map<K,V> {
             throw new RuntimeException("Unable to instantiate map of type "
                 + map.getClass().getTypeName() + " using no-arg constructor", e);
         }
-        long timestamp = now();
-        for(Entry<K,V> entry : map.entrySet()) {
-            wrapper.put(entry.getKey(), new TimestampedValue<V>(entry.getValue(), timestamp));
-        }
+        this.putAll(map);
         this.lifetime = lifetime;
     }
 
@@ -276,9 +271,7 @@ public final class ExpiringEntryMap<K,V> implements Map<K,V> {
     public void putAll(Map<? extends K,? extends V> m) {
         flush();
         long now = now();
-        for (Entry<? extends K,? extends V> entry : m.entrySet()) {
-            wrapper.put((K)entry.getKey(), (TimestampedValue<V>) new TimestampedValue<V>(entry.getValue(), now));
-        }
+        m.entrySet().forEach(entry -> wrapper.put(entry.getKey(), new TimestampedValue<V>(entry.getValue(), now)));
     }
 
     @Override
@@ -297,30 +290,27 @@ public final class ExpiringEntryMap<K,V> implements Map<K,V> {
     @SuppressWarnings("unchecked")
     public Collection<V> values() {
         flush();
-        List<V> values = new ArrayList<V>();
-        for (TimestampedValue<V> tv : (Collection<TimestampedValue<V>>) wrapper.values()) {
-            values.add(tv.getValue());
-        }
-        return values;
+        return (Collection<V>) wrapper.values()
+                                      .stream()
+                                      .map(tv -> ((TimestampedValue<V>)tv).getValue())
+                                      .collect(Collectors.toList());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public Set<Entry<K,V>> entrySet() {
         flush();
-        // Implementation doesn't really matter here.
-        Map<K,V> map = new HashMap<K,V>();
-        for (Entry<K,TimestampedValue<V>> entry : (Set<Entry<K,TimestampedValue<V>>>) wrapper.entrySet()) {
-            map.put(entry.getKey(), entry.getValue().getValue());
-        }
+        Map<K,V> map = new HashMap<>();
+        wrapper.entrySet().forEach(entry ->
+            map.put(((Entry<K,TimestampedValue<V>>)entry).getKey(), ((Entry<K,TimestampedValue<V>>)entry).getValue().getValue()));
         return map.entrySet();
     }
 
     @SuppressWarnings("unchecked")
-    private synchronized void flush() {
+    private void flush() {
         long now = now();
-        Set<Entry<K,TimestampedValue<V>>> entrySet = Set.copyOf((Set<Entry<K,TimestampedValue<V>>>)wrapper.entrySet());
-        for (Entry<K,TimestampedValue<V>> entry : entrySet) {
+        Set<Entry<K,TimestampedValue<V>>> entries = Set.copyOf(wrapper.entrySet());
+        for (Entry<K,TimestampedValue<V>> entry : entries) {
             if (now - entry.getValue().getTimestamp() > lifetime) {
                 wrapper.remove(entry.getKey());
             }
