@@ -400,26 +400,26 @@ public class ExpiringEntryMapTest {
                 for(int j=0; j<5; j++) {
                     map.put(Thread.currentThread().getName()+j, Thread.currentThread().getId());
                 }
-                callOverrides(map);
+                testFullOverrides(map);
             });
             map.put(Thread.currentThread().getName()+i, Thread.currentThread().getId());
-            callOverrides(map);
+            testFullOverrides(map);
         }
-        callOverrides(map);
+        testFullOverrides(map);
         es.shutdown();
         try {
             es.awaitTermination(5000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             fail(e.getMessage());
         }
-        callOverrides(map);
+        testFullOverrides(map);
         assertEquals(30, map.size());
 
         sleep(1000);
         assertEquals(0, map.size());
     }
 
-    private void callOverrides(Map<String,Long> map) {
+    private void testFullOverrides(Map<String,Long> map) {
         map.containsValue(new Object());
         map.putAll(map);
         map.values();
